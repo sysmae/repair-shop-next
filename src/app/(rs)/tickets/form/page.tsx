@@ -2,6 +2,7 @@ import { getCustomer } from '@/lib/queries/getCustomer'
 import { getTicket } from '@/lib/queries/getTicket'
 import { BackButton } from '@/components/BackButton'
 import * as Sentry from '@sentry/nextjs'
+import TicketForm from '@/app/(rs)/tickets/TicketForm'
 
 export default async function TicketFormPage({
   searchParams,
@@ -14,8 +15,10 @@ export default async function TicketFormPage({
     if (!customerId && !ticketId) {
       return (
         <>
-          <h2 className="text-2xl mb-2">티켓 ID 또는 고객 ID가 필요합니다.</h2>
-          <BackButton title="돌아가기" variant="default" />
+          <h2 className="text-2xl mb-2">
+            Ticket ID or Customer ID required to load ticket form
+          </h2>
+          <BackButton title="Go Back" variant="default" />
         </>
       )
     }
@@ -28,9 +31,9 @@ export default async function TicketFormPage({
         return (
           <>
             <h2 className="text-2xl mb-2">
-              고객 ID #{customerId}를 찾을 수 없습니다.
+              Customer ID #{customerId} not found
             </h2>
-            <BackButton title="돌아가기" variant="default" />
+            <BackButton title="Go Back" variant="default" />
           </>
         )
       }
@@ -39,15 +42,16 @@ export default async function TicketFormPage({
         return (
           <>
             <h2 className="text-2xl mb-2">
-              고객 ID #{customerId}는 활성 상태가 아닙니다.
+              Customer ID #{customerId} is not active.
             </h2>
-            <BackButton title="돌아가기" variant="default" />
+            <BackButton title="Go Back" variant="default" />
           </>
         )
       }
 
       // return ticket form
       console.log(customer)
+      return <TicketForm customer={customer} />
     }
 
     // Edit ticket form
@@ -57,10 +61,8 @@ export default async function TicketFormPage({
       if (!ticket) {
         return (
           <>
-            <h2 className="text-2xl mb-2">
-              티켓 ID #{ticketId}를 찾을 수 없습니다.
-            </h2>
-            <BackButton title="돌아가기" variant="default" />
+            <h2 className="text-2xl mb-2">Ticket ID #{ticketId} not found</h2>
+            <BackButton title="Go Back" variant="default" />
           </>
         )
       }
@@ -70,6 +72,7 @@ export default async function TicketFormPage({
       // return ticket form
       console.log('ticket: ', ticket)
       console.log('customer: ', customer)
+      return <TicketForm customer={customer} ticket={ticket} />
     }
   } catch (e) {
     if (e instanceof Error) {
