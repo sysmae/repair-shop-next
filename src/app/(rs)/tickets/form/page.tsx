@@ -4,6 +4,25 @@ import { BackButton } from '@/components/BackButton'
 import * as Sentry from '@sentry/nextjs'
 import TicketForm from '@/app/(rs)/tickets/TicketForm'
 
+import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
+import { Users, init as kindeInit } from '@kinde/management-api-js'
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>
+}) {
+  const { customerId, ticketId } = await searchParams
+
+  return {
+    title: customerId
+      ? `New Ticket for Customer #${customerId}`
+      : ticketId
+      ? `Edit Ticket #${ticketId}`
+      : 'Missing Customer or Ticket ID',
+  }
+}
+
 export default async function TicketFormPage({
   searchParams,
 }: {
@@ -24,6 +43,14 @@ export default async function TicketFormPage({
         </>
       )
     }
+
+    const { getPermission, getUser } = getKindeServerSession()
+    const [managerPermission, user] = await Promise.all([
+      getPermission('manager'),
+      getUser(),
+    ])
+
+    const isManager = managerPermission?.isGranted
 
     // customer ID가 있을 때
     if (customerId) {
@@ -55,8 +82,16 @@ export default async function TicketFormPage({
       }
 
       // customer가 있고, 활성화 상태일 때
-      console.log(customer)
-      return <TicketForm customer={customer} />
+      if (isManager) {
+        kindeInit() // kinde management api 초기화
+        const { users } = await Users.getUsers()
+        const techs = users
+          ? users.map((user) => ({ id: user.email!, description: user.email! }))
+          : []
+        return <TicketForm customer={customer} techs={techs} />
+      } else {
+        return <TicketForm customer={customer} />
+      }
     }
 
     // ticket ID가 있을 때
@@ -79,9 +114,28 @@ export default async function TicketFormPage({
       const customer = await getCustomer(ticket.customerId)
 
       // return ticket form
-      console.log('ticket: ', ticket)
-      console.log('customer: ', customer)
-      return <TicketForm customer={customer} ticket={ticket} />
+      if (isManager) {
+        kindeInit() // kinde management api 초기화
+        const { users } = await Users.getUsers()
+        const techs = users
+          ? users.map((user) => ({
+              id: user.email!,
+              description: user.email!,
+            }))
+          : []
+        return <TicketForm customer={customer} ticket={ticket} techs={techs} />
+      } else {
+        const isEditable = user?.email?.toLowerCase() === ticket.tech // ticket의 tech와 현재 로그인한 유저의 이메일이 같을 때 수정 가능
+        console.log('user email:', user?.email)
+        console.log('ticket tech:', ticket.tech)
+        return (
+          <TicketForm
+            customer={customer}
+            ticket={ticket}
+            isEditable={isEditable}
+          />
+        )
+      }
     }
     // 에러 발생 시 Sentry에 로깅
   } catch (e) {
