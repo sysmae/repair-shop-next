@@ -4,6 +4,7 @@ import NavButton from './NavButton'
 import { ModeToggle } from './ModeToggle'
 import { LogoutLink } from '@kinde-oss/kinde-auth-nextjs/components'
 import { Button } from './ui/button'
+import { NavButtonMenu } from './NavButtonMenu'
 const Header = () => {
   return (
     <header className="animate-slide bg-background h-12 p-2 border-b sticky top-0 z-20">
@@ -22,7 +23,15 @@ const Header = () => {
         </div>
         <div className="flex items-center">
           <NavButton icon={File} label="티켓" href="/tickets" />
-          <NavButton icon={UsersRound} label="고객" href="/customers" />
+
+          <NavButtonMenu
+            icon={UsersRound}
+            label="고객 메뉴"
+            choices={[
+              { title: '고객 검색', href: '/customers' },
+              { title: '고객 추가', href: '/customers/form' },
+            ]}
+          />
           <ModeToggle />
           <Button
             variant={'ghost'}
