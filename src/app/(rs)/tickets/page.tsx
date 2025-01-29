@@ -1,6 +1,7 @@
-import { getTicketSearchResults } from './getTicketSearchResults'
+import { getTicketSearchResults } from '../../../lib/queries/getTicketSearchResults'
 import { getOpenTickets } from '@/lib/queries/getOpenTickets'
 import TicketSearch from './TicketSearch'
+import TicketTable from './TicketTable'
 
 export const metadata = {
   title: '티켓 검색',
@@ -19,7 +20,7 @@ const Tickets = async ({
     return (
       <>
         <TicketSearch />
-        <p>{JSON.stringify(result)}</p>
+        {result.length ? <TicketTable data={result} /> : null}
       </>
     )
   }
@@ -31,7 +32,7 @@ const Tickets = async ({
   return (
     <>
       <TicketSearch />
-      <p>{JSON.stringify(result)}</p>
+      {result.length ? <TicketTable data={result} /> : null}
     </>
   )
 }
